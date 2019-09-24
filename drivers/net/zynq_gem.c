@@ -188,8 +188,7 @@ struct zynq_gem_priv {
 	struct emac_bd *tx_bd;
 	struct emac_bd *rx_bd;
 	char *rxbuffers;
-	u32 rxbd_current;
-	u32 rx_first_buf;
+	volatile u32 rxbd_current;
 	int phyaddr;
 	int init;
 	struct zynq_gem_regs *iobase;
@@ -388,6 +387,8 @@ static int zynq_gem_init(struct udevice *dev)
 	}
 		/* WRAP bit to last BD */
 		priv->rx_bd[--i].addr |= ZYNQ_GEM_RXBUF_WRAP_MASK;
+		//flush_dcache_range((u64)priv->rx_bd, (u64)priv->rx_bd + sizeof(struct emac_bd)*RX_BUF);
+		barrier();
 		/* Write RxBDs to IP */
 		writel(lower_32_bits((ulong)priv->rx_bd), &regs->rxqbase);
 #if defined(CONFIG_PHYS_64BIT)
@@ -485,6 +486,7 @@ static int zynq_gem_send(struct udevice *dev, void *ptr, int len)
 {
 	dma_addr_t addr;
 	u32 size;
+	int rc;
 	struct zynq_gem_priv *priv = dev_get_priv(dev);
 	struct zynq_gem_regs *regs = priv->iobase;
 	struct emac_bd *current_bd = &priv->tx_bd[1];
@@ -512,7 +514,8 @@ static int zynq_gem_send(struct udevice *dev, void *ptr, int len)
 #if defined(CONFIG_PHYS_64BIT)
 	writel(upper_32_bits((ulong)priv->tx_bd), &regs->upper_txqbase);
 #endif
-
+	flush_dcache_range((dma_addr_t)priv->tx_bd, (dma_addr_t)priv->tx_bd + sizeof(struct emac_bd));
+	barrier();
 	addr = (ulong) ptr;
 	addr &= ~(ARCH_DMA_MINALIGN - 1);
 	size = roundup(len, ARCH_DMA_MINALIGN);
@@ -526,8 +529,12 @@ static int zynq_gem_send(struct udevice *dev, void *ptr, int len)
 	if (priv->tx_bd->status & ZYNQ_GEM_TXBUF_EXHAUSTED)
 		printf("TX buffers exhausted in mid frame\n");
 
-	return wait_for_bit_le32(&regs->txsr, ZYNQ_GEM_TSR_DONE,
-				 true, 20000, true);
+	rc = wait_for_bit_le32(&regs->txsr, ZYNQ_GEM_TSR_DONE,
+				 true, 2000, true);
+	if (rc < 0)
+		debug("Tx status is 0x%08x, nws = 0x%08x, nwctrl = 0x%08x, nwconf = 0x%08x\n",
+				readl(&regs->txsr), readl(&regs->nwsr), readl(&regs->nwctrl), readl(&regs->nwcfg));
+	return rc;
 }
 
 /* Do not check frame_recd flag in rx_status register 0x20 - just poll BD */
@@ -537,7 +544,8 @@ static int zynq_gem_recv(struct udevice *dev, int flags, uchar **packetp)
 	dma_addr_t addr;
 	struct zynq_gem_priv *priv = dev_get_priv(dev);
 	struct emac_bd *current_bd = &priv->rx_bd[priv->rxbd_current];
-
+	invalidate_dcache_range((dma_addr_t)current_bd, (dma_addr_t)current_bd + sizeof(struct emac_bd));
+	barrier();
 	if (!(current_bd->addr & ZYNQ_GEM_RXBUF_NEW_MASK))
 		return -1;
 
@@ -552,7 +560,7 @@ static int zynq_gem_recv(struct udevice *dev, int flags, uchar **packetp)
 		printf("%s: Zero size packet?\n", __func__);
 		return -1;
 	}
-
+	debug("%s: plen = %d\n", __func__, frame_len);
 #if defined(CONFIG_PHYS_64BIT)
 	addr = (dma_addr_t)((current_bd->addr & ZYNQ_GEM_RXBUF_ADD_MASK)
 		      | ((dma_addr_t)current_bd->addr_hi << 32));
@@ -571,25 +579,21 @@ static int zynq_gem_recv(struct udevice *dev, int flags, uchar **packetp)
 
 static int zynq_gem_free_pkt(struct udevice *dev, uchar *packet, int length)
 {
+	u32 next_bd;
 	struct zynq_gem_priv *priv = dev_get_priv(dev);
 	struct emac_bd *current_bd = &priv->rx_bd[priv->rxbd_current];
-	struct emac_bd *first_bd;
-
-	if (current_bd->status & ZYNQ_GEM_RXBUF_SOF_MASK) {
-		priv->rx_first_buf = priv->rxbd_current;
-	} else {
-		current_bd->addr &= ~ZYNQ_GEM_RXBUF_NEW_MASK;
-		current_bd->status = 0xF0000000; /* FIXME */
-	}
+	debug("%s: bdnr %d\n", __func__, priv->rxbd_current);
+	invalidate_dcache_range((dma_addr_t)current_bd, (dma_addr_t)current_bd + roundup(sizeof(struct emac_bd), ARCH_DMA_MINALIGN));
+	barrier();
 
 	if (current_bd->status & ZYNQ_GEM_RXBUF_EOF_MASK) {
-		first_bd = &priv->rx_bd[priv->rx_first_buf];
-		first_bd->addr &= ~ZYNQ_GEM_RXBUF_NEW_MASK;
-		first_bd->status = 0xF0000000;
-	}
 
-	if ((++priv->rxbd_current) >= RX_BUF)
-		priv->rxbd_current = 0;
+		next_bd = (priv->rxbd_current + 1) % RX_BUF;
+		WRITE_ONCE(priv->rxbd_current, next_bd);
+		current_bd->addr &= ~ZYNQ_GEM_RXBUF_NEW_MASK;	/* release BD */
+		flush_dcache_range((dma_addr_t)current_bd, (dma_addr_t)current_bd + roundup(sizeof(struct emac_bd), ARCH_DMA_MINALIGN));
+		barrier();
+	}
 
 	return 0;
 }
@@ -655,14 +659,16 @@ static int zynq_gem_probe(struct udevice *dev)
 	flush_dcache_range(addr, addr + roundup(RX_BUF * PKTSIZE_ALIGN, ARCH_DMA_MINALIGN));
 	barrier();
 
+
 	/* Align bd_space to MMU_SECTION_SHIFT */
 	bd_space = memalign(1 << MMU_SECTION_SHIFT, BD_SPACE);
 	if (!bd_space)
 		return -ENOMEM;
 
+	/*
 	mmu_set_region_dcache_behaviour((phys_addr_t)bd_space,
 					BD_SPACE, DCACHE_OFF);
-
+*/
 	/* Initialize the bd spaces for tx and rx bd's */
 	priv->tx_bd = (struct emac_bd *)bd_space;
 	priv->rx_bd = (struct emac_bd *)((ulong)bd_space + BD_SEPRN_SPACE);

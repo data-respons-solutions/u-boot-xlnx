@@ -3,7 +3,6 @@
  * (C) Copyright 2000, 2001
  * Rich Ireland, Enterasys Networks, rireland@enterasys.com.
  */
-
 /*
  *  FPGA support
  */
@@ -191,6 +190,29 @@ static int do_fpga_loadb(cmd_tbl_t *cmdtp, int flag, int argc,
 	return fpga_loadbitstream(dev, (void *)fpga_data, data_size, BIT_FULL);
 }
 
+static int do_fpga_image_size(cmd_tbl_t *cmdtp, int flag, int argc,
+			 char * const argv[])
+{
+	long local_fpga_data;
+	long dev = simple_strtol(argv[0], NULL, 10);
+
+	debug("%s %d, %d\n", __func__, argc, cmdtp->maxargs);
+
+	if (argc != cmdtp->maxargs) {
+		debug("fpga: incorrect parameters passed\n");
+		return CMD_RET_USAGE;
+	}
+
+
+	local_fpga_data = simple_strtol(argv[1], NULL, 16);
+	if (!local_fpga_data) {
+		debug("fpga: zero fpga_data address\n");
+		return CMD_RET_USAGE;
+	}
+	return fpga_get_image_size(dev, (void *)local_fpga_data);
+
+}
+
 #if defined(CONFIG_CMD_FPGA_LOADP)
 static int do_fpga_loadp(cmd_tbl_t *cmdtp, int flag, int argc,
 			 char * const argv[])
@@ -365,6 +387,7 @@ static cmd_tbl_t fpga_commands[] = {
 	U_BOOT_CMD_MKENT(dump, 3, 1, do_fpga_dump, "", ""),
 	U_BOOT_CMD_MKENT(load, 3, 1, do_fpga_load, "", ""),
 	U_BOOT_CMD_MKENT(loadb, 3, 1, do_fpga_loadb, "", ""),
+	U_BOOT_CMD_MKENT(image_size, 2, 2, do_fpga_image_size, "", ""),
 #if defined(CONFIG_CMD_FPGA_LOADP)
 	U_BOOT_CMD_MKENT(loadp, 3, 1, do_fpga_loadp, "", ""),
 #endif
@@ -414,7 +437,7 @@ static int do_fpga_wrapper(cmd_tbl_t *cmdtp, int flag, int argc,
 #if defined(CONFIG_CMD_FPGA_LOADFS) || defined(CONFIG_CMD_FPGA_LOAD_SECURE)
 U_BOOT_CMD(fpga, 9, 1, do_fpga_wrapper,
 #else
-U_BOOT_CMD(fpga, 6, 1, do_fpga_wrapper,
+U_BOOT_CMD(fpga, 7, 1, do_fpga_wrapper,
 #endif
 	   "loadable FPGA image support",
 	   "[operation type] [device number] [image address] [image size]\n"
@@ -422,6 +445,7 @@ U_BOOT_CMD(fpga, 6, 1, do_fpga_wrapper,
 	   "  dump\t[dev] [address] [size]\tLoad device to memory buffer\n"
 	   "  info\t[dev]\t\t\tlist known device information\n"
 	   "  load\t[dev] [address] [size]\tLoad device from memory buffer\n"
+	   "  image_size\t[dev] [address]\tGet image size from header\n"
 #if defined(CONFIG_CMD_FPGA_LOADP)
 	   "  loadp\t[dev] [address] [size]\t"
 	   "Load device from memory buffer with partial bitstream\n"

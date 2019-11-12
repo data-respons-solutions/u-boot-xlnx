@@ -25,6 +25,8 @@
 	"initrd_size=0x2000000\0" \
 	"fdt_addr=4000000\0" \
 	"fdt_high=0x10000000\0" \
+	"bitstream_qspi=0x1000000\0" \
+	"bitstream_load=0x1000000\0" \
 	"loadbootenv_addr=0x100000\0" \
 	"sdbootdev=0\0" \
 	"partid=1\0" \
@@ -39,6 +41,12 @@
 	"loadbootenv=load mmc ${sdbootdev}:${bootenv_part} ${loadbootenv_addr} ${bootenv}\0" \
 	"importbootenv=echo Importing environment from SD ...; " \
 		"env import -t ${loadbootenv_addr} $filesize\0" \
+	"prog_fpga_qspi=sf probe; sf read ${bitstream_load} ${bitstream_qspi} 0x1000; " \
+		"if fpga image_size 0 ${bitstream_load}; then " \
+			"echo Loading fpga from QSPI, size ${fpga_image_size}; " \
+			"sf read ${bitstream_load} ${fpga_image_start} ${fpga_image_size}; " \
+			"fpga load 0 ${bitstream_load} ${fpga_image_size}; " \
+		"fi\0" \
 	"sd_uEnvtxt_existence_test=test -e mmc ${sdbootdev}:${bootenv_part} ${bootenv}\0" \
 	"netboot=setenv bootargs clk_ignore_unused; sleep 60; tftpboot 10000000 initrd-installer.itb && bootm\0" \
 	"qspiboot=sf probe 0 0 0 && sf read $fdt_addr $fdt_offset $fdt_size && " \
@@ -69,6 +77,7 @@
 #undef BOOT_TARGET_DEVICES
 #define BOOTENV_DEV_NETBOOT(devtypeu, devtypel, instance) \
 	"bootcmd_netboot=" \
+	"run prog_fpga_qspi; " \
 	"while true ; do " \
 		"echo Trying TFTP boot from ${serverip} using ${tftp_file}; " \
 		"run netboot; " \

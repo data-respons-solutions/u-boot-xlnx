@@ -30,7 +30,7 @@
 		serial0 = &uart0;
 		spi0 = &qspi;
 		spi1 = &spi0;
-		usb0 = &usb0;
+		usb0 = &usb1;
 	};
 
 	chosen {
@@ -490,8 +490,12 @@
 	pinctrl-0 = <&pinctrl_uart1_default>;
 };
 
+&serdes {
+    status = "okay";
+};
+
 &usb1 {
-	status = "enabled";
+	status = "okay";
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_usb1_default>;
 };
@@ -499,7 +503,10 @@
 &dwc3_1 {
 	status = "okay";
 	dr_mode = "peripheral";
-	maximum-speed = "high-speed";
+	snps,usb3_lpm_capable;
+    phy-names = "usb3-phy";
+    phys = <&lane3 PHY_TYPE_USB3 1 0 100000000>;
+    maximum-speed = "high-speed";
 };
 
 &watchdog0 {

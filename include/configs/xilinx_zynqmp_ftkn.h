@@ -36,6 +36,7 @@
 	"kernel_size=0x1e00000\0" \
 	"fdt_size=0x80000\0" \
 	"tftp_file=initrd-installer.itb\0" \
+	"dfu_alt_info=bootcode raw 0x0 0x400000;bitfile raw 0x1000000 0x1000000\0" \
 	"bootenv=/boot/uEnv.txt\0" \
 	"divert_flag=/boot/divert\0" \
 	"loadbootenv=load mmc ${sdbootdev}:${bootenv_part} ${loadbootenv_addr} ${bootenv}\0" \
@@ -66,9 +67,6 @@
 	"jtagboot=tftpboot 80000 Image && tftpboot $fdt_addr system.dtb && " \
 		 "tftpboot 6000000 rootfs.cpio.ub && booti 80000 6000000 $fdt_addr\0" \
 	"nosmp=setenv bootargs $bootargs maxcpus=1\0" \
-	"qspiboot=sf probe 0 0 0 && sf read $fdt_addr $fdt_offset $fdt_size && " \
-	  "sf read $kernel_addr $kernel_offset $kernel_size && " \
-	  "booti $kernel_addr - $fdt_addr\0" \
 	"tftptimeout=50000\0"
 
 #include <configs/xilinx_zynqmp.h>
@@ -77,11 +75,15 @@
 #undef BOOT_TARGET_DEVICES
 #define BOOTENV_DEV_NETBOOT(devtypeu, devtypel, instance) \
 	"bootcmd_netboot=" \
-	"run prog_fpga_qspi; " \
-	"while true ; do " \
-		"echo Trying TFTP boot from ${serverip} using ${tftp_file}; " \
-		"run netboot; " \
-	"done\0"
+	"if run prog_fpga_qspi; then " \
+		"while true ; do " \
+			"echo Trying TFTP boot from ${serverip} using ${tftp_file}; " \
+			"run netboot; " \
+		"done; " \
+	"else " \
+		"echo No bitfile in flash, enter DFU mode; " \
+		"dfu 0 sf 0:0;" \
+	"fi\0"
 #define BOOTENV_DEV_NAME_NETBOOT(devtypeu, devtypel, instance) "netboot "
 #define BOOT_TARGET_DEVICES_NETBOOT(func)	func(NETBOOT, na, na)
 

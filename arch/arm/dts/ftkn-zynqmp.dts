@@ -447,13 +447,29 @@
 		spi-tx-bus-width = <1>;
 		spi-rx-bus-width = <4>;
 		spi-max-frequency = <37500000>; /* Based on DC1 spec */
-		partition@qspi-fsbl-uboot { /* SPL and u-boot */
-			label = "qspi-fsbl-uboot";
-			reg = <0x0 0x1000000>;
+		partition@qspi-fsbl-uboot-pri { /* SPL and u-boot */
+			label = "qspi-fsbl-uboot-pri";
+			reg = <0x0 0x0800000>;
 		};
-		partition@qspi-bitfile { /* FPGA */
-			label = "qspi-bitfile";
+		partition@qspi-fsbl-uboot-sec { /* Backup boot files */
+			label = "qspi-fsbl-uboot-sec";
+			reg = <0x0800000 0x0800000>;
+		};
+		partition@qspi-bitfile-1 { /* Bitfile part 1 */
+			label = "qspi-bitfile-1";
 			reg = <0x1000000 0x1000000>;
+		};
+		partition@qspi-bitfile-2 { /* Bitfile part 2 */
+			label = "qspi-bitfile-2";
+			reg = <0x2000000 0x1000000>;
+		};
+		partition@qspi-vpd { /* Spare */
+			label = "qspi-vpd";
+			reg = <0x3000000 0x100000>;
+		};
+		partition@qspi-nop { /* Spare */
+			label = "qspi-nop";
+			reg = <0x3100000 0x0F00000>;
 		};
 	};
 };

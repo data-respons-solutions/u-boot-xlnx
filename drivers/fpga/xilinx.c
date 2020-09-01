@@ -129,7 +129,7 @@ int fpga_get_image_size(int devnum, const unsigned char *fpgadata)
 		dataptr += 4;
 		printf("%s: size is %ld\n", __func__, swapsize + (dataptr - fpgadata));
 		env_set_hex("fpga_image_size", swapsize);
-		env_set_hex("fpga_image_start", dataptr);
+		env_set_hex("fpga_image_start", (u64)dataptr);
 
 		return 0;
 }

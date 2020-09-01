@@ -691,7 +691,7 @@ int aes_decrypt_hw(u8 *key_ptr, u8 *src_ptr, u8 *dst_ptr, u32 len)
 	len = ROUND(len + KEY_LEN + IV_LEN, CONFIG_SYS_CACHELINE_SIZE);
 	flush_dcache_range((ulong)src_ptr, (ulong)(src_ptr + len));
 
-	ret = xilinx_pm_request(PM_SECURE_LOAD, src_lo, src_hi, wlen,
+	ret = xilinx_pm_request(ZYNQMP_SIP_SVC_PM_SECURE_LOAD, src_lo, src_hi, wlen,
 			 ZYNQMP_PM_SECURE_AES, ret_payload);
 	if (ret)
 		printf("Fail: %s: %d\n", __func__, ret);

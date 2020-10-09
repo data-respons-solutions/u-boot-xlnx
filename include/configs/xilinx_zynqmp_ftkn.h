@@ -17,9 +17,9 @@
 #define CONFIG_NETMASK			255.255.255.252
 #define CONFIG_SERVERIP			20.20.5.1
 
+#define DFU_OLD "dfu_alt_info=bootcode raw 0x0 0x400000;bitfile raw 0x1000000 0x1000000\0"
 
 #define CONFIG_EXTRA_ENV_BOARD_SETTINGS \
-	"ethaddr=00:30:64:34:00:01\0" \
 	"kernel_addr=0x80000\0" \
 	"initrd_addr=0xa00000\0" \
 	"initrd_size=0x2000000\0" \
@@ -36,7 +36,7 @@
 	"kernel_size=0x1e00000\0" \
 	"fdt_size=0x80000\0" \
 	"tftp_file=initrd-installer.itb\0" \
-	"dfu_alt_info=bootcode raw 0x0 0x400000;bitfile raw 0x1000000 0x1000000\0" \
+	"dfu_alt_info=fitimage ram 0x10000000 0x10000000\0" \
 	"bootenv=/boot/uEnv.txt\0" \
 	"divert_flag=/boot/divert\0" \
 	"loadbootenv=load mmc ${sdbootdev}:${bootenv_part} ${loadbootenv_addr} ${bootenv}\0" \
@@ -75,6 +75,7 @@
 #undef BOOT_TARGET_DEVICES
 #define BOOTENV_DEV_NETBOOT(devtypeu, devtypel, instance) \
 	"bootcmd_netboot=" \
+	"dfu 0 ram 0; bootm 0x10000000; " \
 	"if run prog_fpga_qspi; then " \
 		"while true ; do " \
 			"echo Trying TFTP boot from ${serverip} using ${tftp_file}; " \
@@ -99,8 +100,15 @@
 #define BOOTENV_DEV_NAME_UENV(devtypeu, devtypel, instance) "uenv "
 #define BOOT_TARGET_DEVICES_UENV(func)	func(UENV, uenvboot, na)
 
+#define BOOTENV_DEV_USBDFU(devtypeu, devtypel, instance) \
+	"bootcmd_dfu=dfu 0 ram 0; bootm ${fit_addr}; \0"
+
+#define BOOTENV_DEV_NAME_USBDFU(devtypeu, devtypel, instance) "dfu "
+#define BOOT_TARGET_DEVICES_USBDFU(func)	func(USBDFU, na, na)
+
 #define BOOT_TARGET_DEVICES(func) \
 	BOOT_TARGET_DEVICES_UENV(func) \
+	BOOT_TARGET_DEVICES_USBDFU(func) \
 	BOOT_TARGET_DEVICES_NETBOOT(func) \
 	BOOT_TARGET_DEVICES_QSPI(func)
 

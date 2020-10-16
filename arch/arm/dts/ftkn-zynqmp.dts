@@ -47,6 +47,11 @@
 		u-boot,spl-payload-offset = <0x170000>;
 	};
 
+	usbphy0: usbphy@0 {
+		#phy-cells = <0>;
+		compatible = "usb-nop-xceiv";
+		status = "okay";
+	};
 /*
 	leds {
 		compatible = "gpio-leds";
@@ -439,37 +444,33 @@
 &qspi {
 	status = "okay";
 	is-dual = <0>;
-	flash@0 {
-		compatible = "mx25u51235f", "jedec,spi-nor"; /* 64MB Macronix */
+	flash: flash@0 {
+		compatible = "jedec,spi-nor"; /* 64MB Macronix */
 		#address-cells = <1>;
 		#size-cells = <1>;
 		reg = <0x0>;
 		spi-tx-bus-width = <1>;
 		spi-rx-bus-width = <4>;
-		spi-max-frequency = <37500000>; /* Based on DC1 spec */
-		partition@qspi-fsbl-uboot-pri { /* SPL and u-boot */
-			label = "qspi-fsbl-uboot-pri";
-			reg = <0x0 0x0800000>;
+		spi-max-frequency = <37500000>;
+		partition@0 { /* SPL and u-boot */
+			label = "boot-pri";
+			reg = <0x0 0x400000>;
 		};
-		partition@qspi-fsbl-uboot-sec { /* Backup boot files */
-			label = "qspi-fsbl-uboot-sec";
-			reg = <0x0800000 0x0800000>;
+		partition@4000000 { /* Backup boot files */
+			label = "boot-sec";
+			reg = <0x400000 0x400000>;
 		};
-		partition@qspi-bitfile-1 { /* Bitfile part 1 */
-			label = "qspi-bitfile-1";
-			reg = <0x1000000 0x1000000>;
+		partition@8000000 { /* Bitfile */
+			label = "fpga";
+			reg = <0x800000 0x1000000>;
 		};
-		partition@qspi-bitfile-2 { /* Bitfile part 2 */
-			label = "qspi-bitfile-2";
-			reg = <0x2000000 0x1000000>;
+		partition@18000000 { /* uboot env*/
+			label = "env";
+			reg = <0x1800000 0x100000>;
 		};
-		partition@qspi-vpd { /* Spare */
-			label = "qspi-vpd";
-			reg = <0x3000000 0x100000>;
-		};
-		partition@qspi-nop { /* Spare */
-			label = "qspi-nop";
-			reg = <0x3100000 0x0F00000>;
+		partition@19000000 { /* Spare */
+			label = "ubi";
+			reg = <0x1900000 0x2700000>;
 		};
 	};
 };
@@ -520,11 +521,21 @@
 &dwc3_1 {
 	status = "okay";
 	dr_mode = "peripheral";
-    phy-names = "usb3-phy";
-    phys = <&lane3 PHY_TYPE_USB3 1 3 100000000>;
-    maximum-speed = "super-speed";
+    phy-names = "usb2-phy";
+    phys = <&usbphy0>;
+    maximum-speed = "high-speed";
 };
 
+/* TODO: Use when HW is fixed
+&dwc3_1 {
+	status = "okay";
+	dr_mode = "peripheral";
+    phy-names = "usb2-phy", "usb3-phy";
+	snps,usb3_lpm_capable;
+    phys = <&usbphy0>, <&lane3 PHY_TYPE_USB3 1 3 100000000>;
+    maximum-speed = "super-speed";
+};
+*/
 &watchdog0 {
 	status = "disabled";
 };

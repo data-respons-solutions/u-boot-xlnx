@@ -85,10 +85,10 @@ int run_usb_dnl_gadget(int usbctrl_index, char *usb_dnl_gadget)
 exit:
 	g_dnl_unregister();
 	usb_gadget_release(usbctrl_index);
-
+#if 0
 	if (dfu_reset)
 		do_reset(NULL, 0, 0, NULL);
-
+#endif
 	g_dnl_clear_detach();
 
 	return ret;

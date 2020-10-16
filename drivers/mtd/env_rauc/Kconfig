@@ -1,0 +1,17 @@
+config ENV_RAUC_MAX_SIZE
+    int "Max capacity"
+    default 32768
+    help
+        Capped below 1/2 MTD capacity
+
+config ENV_RAUC_MTD_NAME
+    string "mtd part label"
+    default "env"
+    help
+        The partition
+
+config ENV_RAUC_CMD
+    bool "Commands"
+    default y
+    help
+        Enable scripting

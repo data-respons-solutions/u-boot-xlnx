@@ -49,7 +49,7 @@
 
 	usbphy0: usbphy@0 {
 		#phy-cells = <0>;
-		compatible = "usb-nop-xceiv";
+		compatible = "nop-phy";
 		status = "okay";
 	};
 /*
@@ -520,7 +520,7 @@
 
 &dwc3_1 {
 	status = "okay";
-	dr_mode = "peripheral";
+	dr_mode = "otg";
     phy-names = "usb2-phy";
     phys = <&usbphy0>;
     maximum-speed = "high-speed";

@@ -108,10 +108,18 @@ config HBMC_AM654
 	 This is the driver for HyperBus controller on TI's AM65x and
 	 other SoCs
 
+config ENV_RAUC
+	bool "Add RAUC redundant MTD"
+	depends on MTD
+	help
+		Support u-boot/RAUC combo in reliable way
+
 source "drivers/mtd/nand/Kconfig"
 
 source "drivers/mtd/spi/Kconfig"
 
 source "drivers/mtd/ubi/Kconfig"
+
+source "drivers/mtd/env_rauc/Kconfig"
 
 endmenu

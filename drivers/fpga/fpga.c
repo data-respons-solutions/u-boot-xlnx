@@ -192,6 +192,12 @@ int __weak fpga_loadbitstream(int devnum, char *fpgadata, size_t size,
 	return FPGA_FAIL;
 }
 
+int __weak fpga_get_image_size(int devnum, const unsigned char *fpgadata)
+{
+	printf("%s not implemented for FPGA architecture\n", __func__);
+	return FPGA_FAIL;
+}
+
 #if defined(CONFIG_CMD_FPGA_LOADFS)
 int fpga_fsload(int devnum, const void *buf, size_t size,
 		 fpga_fs_info *fpga_fsinfo)

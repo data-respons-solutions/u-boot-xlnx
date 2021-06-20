@@ -196,6 +196,29 @@ static int do_fpga_loadb(struct cmd_tbl *cmdtp, int flag, int argc,
 	return fpga_loadbitstream(dev, (void *)fpga_data, data_size, BIT_FULL);
 }
 
+static int do_fpga_image_size(struct cmd_tbl *cmdtp, int flag, int argc,
+			 char * const argv[])
+{
+	long local_fpga_data;
+	long dev = simple_strtol(argv[0], NULL, 10);
+
+	debug("%s %d, %d\n", __func__, argc, cmdtp->maxargs);
+
+	if (argc != cmdtp->maxargs) {
+		debug("fpga: incorrect parameters passed\n");
+		return CMD_RET_USAGE;
+	}
+
+
+	local_fpga_data = simple_strtol(argv[1], NULL, 16);
+	if (!local_fpga_data) {
+		debug("fpga: zero fpga_data address\n");
+		return CMD_RET_USAGE;
+	}
+	return fpga_get_image_size(dev, (void *)local_fpga_data);
+
+}
+
 #if defined(CONFIG_CMD_FPGA_LOADP)
 static int do_fpga_loadp(struct cmd_tbl *cmdtp, int flag, int argc,
 			 char *const argv[])

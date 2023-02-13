@@ -174,41 +174,15 @@ config HBMC_AM654
 config STM32_FLASH
 	bool "STM32 MCU Flash driver"
 	depends on ARCH_STM32
-	select USE_SYS_MAX_FLASH_BANKS
 	help
 	 This is the driver of embedded flash for some STMicroelectronics
 	 STM32 MCU.
 
-config SYS_MAX_FLASH_SECT
-	int "Maximumm number of sectors on a flash chip"
-	depends on MTD_NOR_FLASH || FLASH_CFI_DRIVER
-	default 512
-
-config SAMSUNG_ONENAND
-	bool "Samsung OneNAND driver support"
-
-config USE_SYS_MAX_FLASH_BANKS
-	bool "Enable Max number of Flash memory banks"
+config ENV_RAUC
+	bool "Add RAUC redundant MTD"
+	depends on MTD
 	help
-	  When this option is enabled, the CONFIG_SYS_MAX_FLASH_BANKS
-	  will be defined.
-
-config SYS_MAX_FLASH_BANKS
-	int "Max number of Flash memory banks"
-	depends on USE_SYS_MAX_FLASH_BANKS
-	default 1
-	help
-	 Max number of Flash memory banks using by the MTD framework, in the
-	 flash CFI driver and in some other driver to define the flash_info
-	 struct declaration.
-
-config SYS_MAX_FLASH_BANKS_DETECT
-	bool "Detection of flash banks number in CFI driver"
-	depends on CFI_FLASH && FLASH_CFI_DRIVER
-	help
-	 This enables detection of number of flash banks in CFI driver,
-	 to reduce the effective number of flash bank, between 0 and
-	 CONFIG_SYS_MAX_FLASH_BANKS
+		Support u-boot/RAUC combo in reliable way
 
 source "drivers/mtd/nand/Kconfig"
 
@@ -223,5 +197,7 @@ config SYS_NAND_MAX_CHIPS
 source "drivers/mtd/spi/Kconfig"
 
 source "drivers/mtd/ubi/Kconfig"
+
+source "drivers/mtd/env_rauc/Kconfig"
 
 endmenu

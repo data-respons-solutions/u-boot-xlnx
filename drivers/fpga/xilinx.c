@@ -37,6 +37,105 @@ int fpga_is_partial_data(int devnum, size_t img_len)
 	return 1;
 }
 
+int fpga_get_image_size(int devnum, const unsigned char *fpgadata)
+{
+		unsigned int length;
+		unsigned int swapsize;
+		unsigned char *dataptr;
+		unsigned int i;
+		const fpga_desc *desc;
+		xilinx_desc *xdesc;
+
+		dataptr = (unsigned char *)fpgadata;
+		/* Find out fpga_description */
+		desc = fpga_validate(devnum, dataptr, 0, (char *)__func__);
+		/* Assign xilinx device description */
+		xdesc = desc->devdesc;
+
+		/* skip the first bytes of the bitsteam, their meaning is unknown */
+		length = (*dataptr << 8) + *(dataptr + 1);
+		dataptr += 2;
+		dataptr += length;
+
+		/* get design name (identifier, length, string) */
+		length = (*dataptr << 8) + *(dataptr + 1);
+		dataptr += 2;
+		if (*dataptr++ != 0x61) {
+			debug("%s: Design name id not recognized in bitstream\n",
+			      __func__);
+			return FPGA_FAIL;
+		}
+
+		length = (*dataptr << 8) + *(dataptr + 1);
+		dataptr += 2;
+		dataptr += length;
+
+		/* get part number (identifier, length, string) */
+		if (*dataptr++ != 0x62) {
+			printf("%s: Part number id not recognized in bitstream\n",
+			       __func__);
+			return FPGA_FAIL;
+		}
+
+		length = (*dataptr << 8) + *(dataptr + 1);
+		dataptr += 2;
+
+		if (xdesc->name) {
+			i = (ulong)strstr((char *)dataptr, xdesc->name);
+			if (!i) {
+				printf("%s: Wrong bitstream ID for this device\n",
+				       __func__);
+				printf("%s: Bitstream ID %s, current device ID %d/%s\n",
+				       __func__, dataptr, devnum, xdesc->name);
+				return FPGA_FAIL;
+			}
+		} else {
+			printf("%s: Please fill correct device ID to xilinx_desc\n",
+			       __func__);
+		}
+		dataptr += length;
+
+		/* get date (identifier, length, string) */
+		if (*dataptr++ != 0x63) {
+			printf("%s: Date identifier not recognized in bitstream\n",
+			       __func__);
+			return FPGA_FAIL;
+		}
+
+		length = (*dataptr << 8) + *(dataptr+1);
+		dataptr += 2;
+		dataptr += length;
+
+		/* get time (identifier, length, string) */
+		if (*dataptr++ != 0x64) {
+			printf("%s: Time identifier not recognized in bitstream\n",
+			       __func__);
+			return FPGA_FAIL;
+		}
+
+		length = (*dataptr << 8) + *(dataptr+1);
+		dataptr += 2;
+		dataptr += length;
+
+		/* get fpga data length (identifier, length) */
+		if (*dataptr++ != 0x65) {
+			printf("%s: Data length id not recognized in bitstream\n",
+			       __func__);
+			return FPGA_FAIL;
+		}
+		swapsize = ((unsigned int) *dataptr << 24) +
+			   ((unsigned int) *(dataptr + 1) << 16) +
+			   ((unsigned int) *(dataptr + 2) << 8) +
+			   ((unsigned int) *(dataptr + 3));
+		dataptr += 4;
+		printf("%s: size is %ld\n", __func__, swapsize + (dataptr - fpgadata));
+		env_set_hex("fpga_image_size", swapsize);
+		env_set_hex("fpga_image_start", dataptr);
+
+		return 0;
+}
+
+
 int fpga_loadbitstream(int devnum, char *fpgadata, size_t size,
 		       bitstream_type bstype)
 {

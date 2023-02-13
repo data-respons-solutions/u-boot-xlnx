@@ -73,6 +73,7 @@ int fpga_loadbitstream(int devnum, char *fpgadata, size_t size,
 		       bitstream_type bstype);
 int fpga_dump(int devnum, const void *buf, size_t bsize);
 int fpga_info(int devnum);
+int fpga_get_image_size(int devnum, const unsigned char *fpgadata);
 const fpga_desc *const fpga_validate(int devnum, const void *buf,
 				     size_t bsize, char *fn);
 

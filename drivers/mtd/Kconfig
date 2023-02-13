@@ -110,11 +110,17 @@ config HBMC_AM654
 	 other SoCs
 
 config STM32_FLASH
-	bool "STM32 MCU Flash driver"
-	depends on ARCH_STM32
+	 bool "STM32 MCU Flash driver"
+	 depends on ARCH_STM32
+	 help
+	  This is the driver of embedded flash for some STMicroelectronics
+	  STM32 MCU.
+
+config ENV_RAUC
+	bool "Add RAUC redundant MTD"
+	depends on MTD
 	help
-	 This is the driver of embedded flash for some STMicroelectronics
-	 STM32 MCU.
+		Support u-boot/RAUC combo in reliable way
 
 source "drivers/mtd/nand/Kconfig"
 
@@ -129,5 +135,7 @@ config SYS_NAND_MAX_CHIPS
 source "drivers/mtd/spi/Kconfig"
 
 source "drivers/mtd/ubi/Kconfig"
+
+source "drivers/mtd/env_rauc/Kconfig"
 
 endmenu

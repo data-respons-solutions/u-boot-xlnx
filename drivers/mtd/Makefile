@@ -26,6 +26,7 @@ obj-y += nand/
 obj-y += onenand/
 obj-y += spi/
 obj-$(CONFIG_MTD_UBI) += ubi/
+obj-$(CONFIG_ENV_RAUC) += env_rauc/
 
 #SPL/TPL build
 else

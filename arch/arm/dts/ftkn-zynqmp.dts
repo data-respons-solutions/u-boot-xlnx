@@ -26,7 +26,6 @@
 		serial0 = &uart0;
 		spi0 = &qspi;
 		spi1 = &spi0;
-		usb0 = &usb1;
 	};
 
 	chosen {
@@ -481,24 +480,15 @@
 		spi-max-frequency = <37500000>;
 		partition@0 { /* SPL and u-boot */
 			label = "boot-pri";
-			reg = <0x0 0x400000>;
+			reg = <0x0 0x1000000>;
 		};
-		partition@4000000 { /* Backup boot files */
+		partition@10000000 { /* Backup boot files */
 			label = "boot-sec";
-			reg = <0x400000 0x400000>;
-		};
-		partition@0F000000 { /* uboot env*/
-			label = "env";
-			reg = <0x0F00000 0x100000>;
-		};
-		partition@10000000 { /* Bitfile */
-			label = "fpga";
 			reg = <0x1000000 0x1000000>;
 		};
-
-		partition@20000000 { /* Spare */
-			label = "ubi";
-			reg = <0x2000000 0x2000000>;
+		partition@2000000 { /* uboot env*/
+			label = "env";
+			reg = <0x2000000 0x100000>;
 		};
 	};
 };
@@ -533,7 +523,7 @@
 };
 
 &usb1 {
-	status = "okay";
+	status = "disabled";
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_usb1_default>;
 };

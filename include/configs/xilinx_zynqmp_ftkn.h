@@ -170,6 +170,19 @@
 
 #undef CONFIG_BOOTCOMMAND
 #define CONFIG_BOOTCOMMAND \
+	"if test -e mmc ${sdbootdev}:${bootenv_part} ${divert_flag}; then " \
+		"echo diverting to tftpboot ...; run netboot; " \
+	"else " \
+		"if test -e mmc ${sdbootdev}:1 /boot/initrd-installer.itb; then " \
+			"echo booting from eMMC; " \
+			"setenv bootargs clk_ignore_unused; load mmc 0: 0x10000000 /boot/initrd-installer.itb; bootm; " \
+		"fi; " \
+	"fi; " \
+	"echo netboot; run netboot; " \
+	"echo Failed, enter DFU mode; rauc init; run setdfuboot; dfu 0 && bootm 0x10000000; " \
+	"echo PANIC and reset; reset"
+
+#define NA_CONFIG_BOOTCOMMAND \
 	"run check_boot_mode; " \
 	"if test ${boot_mode} -ne 0; then " \
 		"gpio set 19; " \
@@ -180,40 +193,6 @@
 		"echo diverting to tftpboot ...; run netboot; " \
 	"else " \
 		"rauc get BOOT_ORDER || run check_part_legacy; " \
-		"echo RAUC boot; " \
-		"if rauc boot; then " \
-			"echo Running RAUC boot part ${rauc_slot}; " \
-			"run setboot; run loadkernel; run loaddtb; booti ${kernel_addr} - ${fdt_addr}; " \
-			"echo Boot failed,toggle slots; run toggle_slots; " \
-			"echo Running RAUC boot part ${rauc_slot}; " \
-			"run setboot; run loadkernel; run loaddtb; booti ${kernel_addr} - ${fdt_addr}; " \
-		"fi; " \
-	"fi; " \
-	"echo netboot; run netboot; " \
-	"echo Failed, enter DFU mode; rauc init; run setdfuboot; dfu 0 && bootm 0x10000000; " \
-	"echo PANIC and reset; reset"
-
-#define XXX_CONFIG_BOOTCOMMAND_XXX \
-	"run prog_fpga; " \
-	"if test $? -ne 0; then " \
-		"echo failed to program primary fpga partition - try secondary ...; " \
-		"setenv bitstream_qspi 0x20000000; run prog_fpga; " \
-		"if test $? -ne 0; then " \
-			"echo NO fpga avialable, run dfu; " \
-			"setenv bitstream_qspi 0x10000000; " \
-			"rauc init; run setdfuboot; dfu 0 && bootm 0x10000000; " \
-		"fi; " \
-	"fi; " \
-	"run check_boot_mode; " \
-	"if test ${boot_mode} -ne 0; then " \
-		"echo IOD reverted to factory; run netboot; " \
-	"fi; " \
-	"if test -e mmc ${sdbootdev}:${bootenv_part} ${divert_flag}; then " \
-		"echo diverting to tftpboot ...; " \
-		"run netboot; " \
-	"else " \
-		"echo checking legacy boot flag; " \
-		"run check_part_legacy; " \
 		"echo RAUC boot; " \
 		"if rauc boot; then " \
 			"echo Running RAUC boot part ${rauc_slot}; " \

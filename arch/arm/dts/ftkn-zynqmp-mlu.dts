@@ -1,0 +1,72 @@
+/dts-v1/;
+
+#include "ftkn-zynqmp.dtsi"
+
+/ {
+	model = "LTKN MLU";
+	compatible = "xlnx,ftkn-zynqmp-mlu", "xlnx,zynqmp";
+
+    aliases {
+        usb0 = &usb0;
+    };
+	
+	usb_gtclk: usb_gtclk {
+		u-boot,dm-pre-reloc;
+		compatible = "fixed-clock";
+		#clock-cells = <0>;
+		clock-frequency = <100000000>;
+	};
+};
+
+/*
+&usb0 {
+	status = "okay";
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_usb0_default>;
+	phy-names = "usb2-phy", "usb3-phy";
+	phys = <&usbphy>, <&psgtr 0 PHY_TYPE_USB3 0 0>;
+};
+
+&dwc3_0 {
+	status = "okay";
+	dr_mode = "otg";
+	snps,usb3_lpm_capable;
+	maximum-speed = "super-speed";
+};
+
+&psgtr {
+	status = "okay";
+	clocks = <&usb_gtclk>;
+	clock-names = "ref0";
+};
+*/
+
+&usb0 {
+	status = "okay";
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_usb0_default>;
+	phy-names = "usb2-phy";
+	phys = <&usbphy>;
+};
+
+&dwc3_0 {
+	status = "okay";
+	dr_mode = "peripheral";
+	snps,usb3_lpm_capable;
+	maximum-speed = "high-speed";
+};
+
+&i2c0 {
+	status = "okay";
+	clock-frequency = <400000>;
+	pinctrl-names = "default", "gpio";
+	pinctrl-0 = <&pinctrl_i2c0_default>;
+	pinctrl-1 = <&pinctrl_i2c0_gpio>;
+	scl-gpios = <&gpio 14 GPIO_ACTIVE_HIGH>;
+	sda-gpios = <&gpio 15 GPIO_ACTIVE_HIGH>;
+
+	rtcx: pcf8563@51 {
+		reg = <0x51>;
+		compatible = "nxp,pcf8563";
+	};
+};

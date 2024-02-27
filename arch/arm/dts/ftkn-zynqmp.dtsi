@@ -1,0 +1,530 @@
+// SPDX-License-Identifier: GPL-2.0+
+/*
+ * dts file for FTKN zynqmp
+*/
+
+
+
+#include "zynqmp.dtsi"
+#include "zynqmp-clk-ccf.dtsi"
+#include "ftkn-zynqmp-pl.dtsi"
+#include <dt-bindings/input/input.h>
+#include <dt-bindings/gpio/gpio.h>
+#include <dt-bindings/pinctrl/pinctrl-zynqmp.h>
+#include <dt-bindings/phy/phy.h>
+
+/ {
+
+	aliases {
+		ethernet0 = &gem3;
+		gpio0 = &axi_gpio_0;
+		i2c0 = &i2c0;
+		mmc0 = &sdhci0;
+		rtc0 = &rtc;
+		serial0 = &uart0;
+		spi0 = &qspi;
+		spi1 = &spi0;
+	};
+
+	chosen {
+		bootargs = "earlycon";
+		stdout-path = "serial0:115200n8";
+	};
+
+	memory {
+		device_type = "memory";
+		reg = <0x0 0x0 0x0 0x3ff00000>;
+	};
+
+	usb2_clk: usb_2clk {
+		u-boot,dm-pre-reloc;
+		compatible = "fixed-clock";
+		#clock-cells = <0>;
+		clock-frequency = <24000000>;
+	};
+
+	/* ULPI SMSC USB3320 */
+	usbphy: phy {
+		compatible = "usb-nop-xceiv";
+		#phy-cells = <0>;
+		clocks = <&usb2_clk>;
+		clock-names = "ref";
+	};
+};
+
+&axi_gpio_0 {
+	status = "okay";
+};
+
+&spi0 {
+	status = "disabled";
+	num-cs = <1>;
+	pinctrl-names = "default";
+	pincctrl-0 = <&pinctrl_spi0_default>;
+};
+
+&can1 {
+	status = "disabled";
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_can1_default>;
+};
+
+&dcc {
+	status = "okay";
+};
+
+&fpd_dma_chan1 {
+	status = "okay";
+};
+
+&fpd_dma_chan2 {
+	status = "okay";
+};
+
+&fpd_dma_chan3 {
+	status = "okay";
+};
+
+&fpd_dma_chan4 {
+	status = "okay";
+};
+
+&fpd_dma_chan5 {
+	status = "okay";
+};
+
+&fpd_dma_chan6 {
+	status = "okay";
+};
+
+&fpd_dma_chan7 {
+	status = "okay";
+};
+
+&fpd_dma_chan8 {
+	status = "okay";
+};
+
+&gem3 {
+	status = "okay";
+	phy-mode = "internal";
+	fixed-link {
+		speed = <1000>;
+		full-duplex;
+	};
+};
+
+&gic {
+	num_cpus = <2>;
+	num_interrupts = <96>;
+};
+&lpd_dma_chan1 {
+	status = "okay";
+};
+&lpd_dma_chan2 {
+	status = "okay";
+};
+&lpd_dma_chan3 {
+	status = "okay";
+};
+&lpd_dma_chan4 {
+	status = "okay";
+};
+&lpd_dma_chan5 {
+	status = "okay";
+};
+&lpd_dma_chan6 {
+	status = "okay";
+};
+&lpd_dma_chan7 {
+	status = "okay";
+};
+&lpd_dma_chan8 {
+	status = "okay";
+};
+
+&gpio {
+	status = "disabled";
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_gpio_default>;
+};
+
+&gpu {
+	status = "disabled";
+};
+
+&pinctrl0 {
+	status = "okay";
+	pinctrl_i2c0_default: i2c0-default {
+		mux {
+			groups = "i2c0_16_grp";
+			function = "i2c0";
+		};
+
+		conf {
+			groups = "i2c0_16_grp";
+			bias-pull-up;
+			slew-rate = <SLEW_RATE_SLOW>;
+			io-standard = <IO_STANDARD_LVCMOS18>;
+		};
+	};
+
+	pinctrl_i2c0_gpio: i2c0-gpio {
+		mux {
+			groups = "gpio0_64_grp", "gpio0_65_grp";
+			function = "gpio0";
+		};
+
+		conf {
+			groups = "gpio0_64_grp", "gpio0_65_grp";
+			slew-rate = <SLEW_RATE_SLOW>;
+			io-standard = <IO_STANDARD_LVCMOS18>;
+		};
+	};
+
+	pinctrl_i2c0_org: i2c0-default-org {
+		mux {
+			groups = "i2c0_13_grp";
+			function = "i2c0";
+		};
+
+		conf {
+			groups = "i2c0_13_grp";
+			bias-pull-up;
+			slew-rate = <SLEW_RATE_SLOW>;
+			io-standard = <IO_STANDARD_LVCMOS18>;
+		};
+	};
+
+	pinctrl_i2c0_gpio_org: i2c0-gpio-org {
+		mux {
+			groups = "gpio0_54_grp", "gpio0_55_grp";
+			function = "gpio0";
+		};
+
+		conf {
+			groups = "gpio0_54_grp", "gpio0_55_grp";
+			slew-rate = <SLEW_RATE_SLOW>;
+			io-standard = <IO_STANDARD_LVCMOS18>;
+		};
+	};
+
+	pinctrl_i2c1_default: i2c1-default {
+		mux {
+			groups = "i2c1_4_grp";
+			function = "i2c1";
+		};
+
+		conf {
+			groups = "i2c1_4_grp";
+			bias-pull-up;
+			slew-rate = <SLEW_RATE_SLOW>;
+			io-standard = <IO_STANDARD_LVCMOS18>;
+		};
+	};
+
+	pinctrl_i2c1_gpio: i2c1-gpio {
+		mux {
+			groups = "gpio0_16_grp", "gpio0_17_grp";
+			function = "gpio0";
+		};
+
+		conf {
+			groups = "gpio0_16_grp", "gpio0_17_grp";
+			slew-rate = <SLEW_RATE_SLOW>;
+			io-standard = <IO_STANDARD_LVCMOS18>;
+		};
+	};
+
+	pinctrl_uart0_default: uart0-default {
+		mux {
+			groups = "uart0_4_grp";
+			function = "uart0";
+		};
+
+		conf {
+			groups = "uart0_4_grp";
+			slew-rate = <SLEW_RATE_SLOW>;
+			io-standard = <IO_STANDARD_LVCMOS33>;
+		};
+
+		conf-rx {
+			pins = "MIO6";
+			bias-high-impedance;
+		};
+
+		conf-tx {
+			pins = "MIO7";
+			bias-disable;
+		};
+	};
+
+	pinctrl_uart1_default: uart1-default {
+		mux {
+			groups = "uart1_5_grp";
+			function = "uart1";
+		};
+
+		conf {
+			groups = "uart1_5_grp";
+			slew-rate = <SLEW_RATE_SLOW>;
+			io-standard = <IO_STANDARD_LVCMOS18>;
+		};
+
+		conf-rx {
+			pins = "MIO21";
+			bias-high-impedance;
+		};
+
+		conf-tx {
+			pins = "MIO20";
+			bias-disable;
+		};
+	};
+
+	pinctrl_usb0_default: usb0-default {
+		mux {
+			groups = "usb0_0_grp";
+			function = "usb0";
+		};
+
+		conf {
+			groups = "usb0_0_grp";
+			slew-rate = <SLEW_RATE_SLOW>;
+			io-standard = <IO_STANDARD_LVCMOS18>;
+		};
+
+		conf-rx {
+			pins = "MIO52", "MIO53", "MIO55";
+			bias-high-impedance;
+		};
+
+		conf-tx {
+			pins = "MIO54", "MIO56", "MIO57", "MIO58", "MIO59",
+			       "MIO60", "MIO61", "MIO62", "MIO63";
+			bias-disable;
+		};
+	};
+
+	pinctrl_usb1_default: usb1-default {
+		mux {
+			groups = "usb1_0_grp";
+			function = "usb1";
+		};
+
+		conf {
+			groups = "usb1_0_grp";
+			slew-rate = <SLEW_RATE_SLOW>;
+			io-standard = <IO_STANDARD_LVCMOS33>;
+		};
+
+		conf-rx {
+			pins = "MIO64", "MIO65", "MIO67";
+			bias-high-impedance;
+		};
+
+		conf-tx {
+			pins = "MIO66", "MIO68", "MIO69", "MIO70", "MIO71",
+			       "MIO72", "MIO73", "MIO74", "MIO75";
+			bias-disable;
+		};
+	};
+
+	pinctrl_gem3_default: gem3-default {
+		mux {
+			function = "ethernet3";
+			groups = "ethernet3_0_grp";
+		};
+
+		conf {
+			groups = "ethernet3_0_grp";
+			slew-rate = <SLEW_RATE_SLOW>;
+			io-standard = <IO_STANDARD_LVCMOS18>;
+		};
+
+		conf-rx {
+			pins = "MIO70", "MIO71", "MIO72", "MIO73", "MIO74",
+									"MIO75";
+			bias-high-impedance;
+			low-power-disable;
+		};
+
+		conf-tx {
+			pins = "MIO64", "MIO65", "MIO66", "MIO67", "MIO68",
+									"MIO69";
+			bias-disable;
+			low-power-enable;
+		};
+
+		mux-mdio {
+			function = "mdio3";
+			groups = "mdio3_0_grp";
+		};
+
+		conf-mdio {
+			groups = "mdio3_0_grp";
+			slew-rate = <SLEW_RATE_SLOW>;
+			io-standard = <IO_STANDARD_LVCMOS18>;
+			bias-disable;
+		};
+	};
+
+	pinctrl_can1_default: can1-default {
+		mux {
+			function = "can1";
+			groups = "can1_6_grp";
+		};
+
+		conf {
+			groups = "can1_6_grp";
+			slew-rate = <SLEW_RATE_SLOW>;
+			io-standard = <IO_STANDARD_LVCMOS18>;
+		};
+
+		conf-rx {
+			pins = "MIO25";
+			bias-high-impedance;
+		};
+
+		conf-tx {
+			pins = "MIO24";
+			bias-disable;
+		};
+	};
+
+	pinctrl_sdhci0_default: sdhci0-default {
+		mux {
+			groups = "sdio0_0_grp";
+			function = "sdio1";
+		};
+
+		conf {
+			groups = "sdio0_0_grp";
+			slew-rate = <SLEW_RATE_SLOW>;
+			io-standard = <IO_STANDARD_LVCMOS18>;
+			bias-disable;
+		};
+
+	};
+
+	pinctrl_gpio_default: gpio-default {
+		mux {
+			function = "gpio0";
+			groups = "gpio0_22_grp", "gpio0_23_grp";
+		};
+
+		conf {
+			groups = "gpio0_22_grp", "gpio0_23_grp";
+			slew-rate = <SLEW_RATE_SLOW>;
+			io-standard = <IO_STANDARD_LVCMOS18>;
+		};
+
+		mux-msp {
+			function = "gpio0";
+			groups = "gpio0_13_grp", "gpio0_38_grp";
+		};
+
+		conf-msp {
+			groups = "gpio0_13_grp", "gpio0_38_grp";
+			slew-rate = <SLEW_RATE_SLOW>;
+			io-standard = <IO_STANDARD_LVCMOS18>;
+		};
+
+		conf-pull-up {
+			pins = "MIO22";
+			bias-pull-up;
+		};
+
+		conf-pull-none {
+			pins = "MIO13", "MIO23", "MIO38";
+			bias-disable;
+		};
+	};
+
+	pinctrl_spi0_default: spi0-default {
+		mux {
+			groups = "spi0_1_grp";
+			function = "spi0";
+		};
+
+		conf {
+			groups = "spi0_1_grp";
+			bias-disable;
+			slew-rate = <SLEW_RATE_SLOW>;
+			io-standard = <IO_STANDARD_LVCMOS33>;
+		};
+
+		mux-cs {
+			groups = "spi0_ss_3_grp";
+			function = "spi0_ss";
+		};
+
+		conf-cs {
+			groups = "spi0_ss_3_grp";
+			bias-disable;
+		};
+	};
+};
+
+&zynqmp_reset {
+	status = "okay";
+};
+
+&qspi {
+	status = "okay";
+	is-dual = <0>;
+	flash: flash@0 {
+		compatible = "jedec,spi-nor"; /* 64MB Macronix */
+		#address-cells = <1>;
+		#size-cells = <1>;
+		reg = <0x0>;
+		spi-tx-bus-width = <1>;
+		spi-rx-bus-width = <4>;
+		spi-max-frequency = <37500000>;
+		partition@0 { /* SPL and u-boot */
+			label = "boot-pri";
+			reg = <0x0 0x1000000>;
+		};
+		partition@10000000 { /* Backup boot files */
+			label = "boot-sec";
+			reg = <0x1000000 0x1000000>;
+		};
+		partition@2000000 { /* uboot env*/
+			label = "env";
+			reg = <0x2000000 0x100000>;
+		};
+	};
+};
+
+&rtc {
+	status = "okay";
+};
+
+&sata {
+	status = "disabled";
+};
+
+&sdhci0 {
+	status = "okay";
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_sdhci0_default>;
+	xlnx,mio_bank = <1>;
+	no-1-8-v;
+};
+
+&uart0 {
+	status = "okay";
+	u-boot,dm-pre-reloc;
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_uart0_default>;
+};
+
+&uart1 {
+	status = "disabled";
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_uart1_default>;
+};
+
+&watchdog0 {
+	status = "okay";
+};

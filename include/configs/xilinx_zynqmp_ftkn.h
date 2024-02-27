@@ -15,14 +15,10 @@
 #define xstr(s) str(s)
 #define str(s) #s
 
-#define CONFIG_REMAKE_ELF
-
 /* #define CONFIG_ARMV8_SWITCH_TO_EL1 */
 /* Generic Interrupt Controller Definitions */
 #define GICD_BASE	0xF9010000
 #define GICC_BASE	0xF9020000
-
-#define CONFIG_SYS_INIT_SP_ADDR		CONFIG_SYS_TEXT_BASE
 
 /* Generic Timer Definitions - setup in EL3. Setup by ATF for other cases */
 #if !defined(COUNTER_FREQUENCY)
@@ -32,7 +28,6 @@
 
 /* Serial setup */
 #define CONFIG_ARM_DCC
-#define CONFIG_CPU_ARMV8
 
 #define CONFIG_SYS_BAUDRATE_TABLE \
 	{ 4800, 9600, 19200, 38400, 57600, 115200 }
@@ -46,11 +41,6 @@
 # define CONFIG_SYS_NAND_ONFI_DETECTION
 #endif
 
-#if defined(CONFIG_SPL_BUILD)
-#define CONFIG_ZYNQMP_PSU_INIT_ENABLED
-#endif
-
-
 #if defined(CONFIG_ZYNQMP_USB)
 #define DFU_DEFAULT_POLL_TIMEOUT	300
 #define CONFIG_THOR_RESET_OFF
@@ -59,7 +49,6 @@
 /* Console I/O Buffer Size */
 #define CONFIG_SYS_CBSIZE		2048
 #define CONFIG_SYS_BARGSIZE		CONFIG_SYS_CBSIZE
-#define CONFIG_SYS_MAXARGS		64
 
 /* Ethernet driver */
 #if defined(CONFIG_ZYNQ_GEM)
@@ -67,10 +56,7 @@
 # define PHY_ANEG_TIMEOUT       20000
 #endif
 
-#define CONFIG_SYS_BOOTM_LEN	SZ_32M
-
 #define CONFIG_SYS_I2C_RTC_ADDR 0x51
-#define CONFIG_CLOCKS
 
 #define CONFIG_BOARD_EARLY_INIT_F
 
@@ -79,6 +65,8 @@
 #define CONFIG_SERVERIP			20.20.5.1
 
 #define ALT_DFU "dfu_alt_info=ram 0=fitimage ram 0x10000000 0x10000000&sf 0:0:3000000:0=boot-pri raw 0x0 0x1000000;boot-sec raw 0x1000000 0x1000000\0"
+
+#define XX "VAL="filnavn
 
 #define CONFIG_EXTRA_ENV_SETTINGS \
 	"ethaddr=00:30:64:34:00:01\0" \
@@ -101,6 +89,7 @@
 	"dtb_file=/boot/ftkn-zynqmp.dtb\0" \
 	"loadkernel=ext4load mmc 0:${boot_part} ${kernel_addr} /boot/Image\0" \
 	"loaddtb=ext4load mmc 0:${boot_part} ${fdt_addr} ${dtb_file}\0" \
+	CONFIG_XTKN_FIT_CONF \
 	ALT_DFU \
 	"mtdparts=" CONFIG_MTDPARTS_DEFAULT "\0" \
 	"default_bootargs=earlycon clk_ignore_unused root=/dev/mmcblk0p${boot_part} ro rootwait rauc.slot=${rauc_slot}\0" \
@@ -125,7 +114,7 @@
 		"setenv bootargs clk_ignore_unused rauc.external; " \
 		"for n in 1 2 3 4; do " \
 			"sleep 30; echo attempt $n on tftp boot; " \
-			"tftpboot 10000000 initrd-installer.itb && bootm; " \
+			"tftpboot ${loadaddr} initrd-installer.itb && bootm ${loadaddr}#${bootconf} " \
 		"done\0" \
 	"uenvboot=" \
 		"run sd_uEnvtxt_existence_test || setenv bootenv_part 1; " \
@@ -175,35 +164,11 @@
 	"else " \
 		"if test -e mmc ${sdbootdev}:1 /boot/initrd-installer.itb; then " \
 			"echo booting from eMMC; " \
-			"setenv bootargs clk_ignore_unused; load mmc 0: 0x10000000 /boot/initrd-installer.itb; bootm; " \
+			"setenv bootargs clk_ignore_unused; load mmc 0: ${loadaddr} /boot/initrd-installer.itb; bootm ${loadaddr}#${bootconf}; " \
 		"fi; " \
 	"fi; " \
 	"echo netboot; run netboot; " \
-	"echo Failed, enter DFU mode; rauc init; run setdfuboot; dfu 0 && bootm 0x10000000; " \
-	"echo PANIC and reset; reset"
-
-#define NA_CONFIG_BOOTCOMMAND \
-	"run check_boot_mode; " \
-	"if test ${boot_mode} -ne 0; then " \
-		"gpio set 19; " \
-		"echo IOD reverted to factory; run netboot; " \
-	"fi; " \
-	"gpio set 20; " \
-	"if test -e mmc ${sdbootdev}:${bootenv_part} ${divert_flag}; then " \
-		"echo diverting to tftpboot ...; run netboot; " \
-	"else " \
-		"rauc get BOOT_ORDER || run check_part_legacy; " \
-		"echo RAUC boot; " \
-		"if rauc boot; then " \
-			"echo Running RAUC boot part ${rauc_slot}; " \
-			"run setboot; run loadkernel; run loaddtb; booti ${kernel_addr} - ${fdt_addr}; " \
-			"echo Boot failed,toggle slots; run toggle_slots; " \
-			"echo Running RAUC boot part ${rauc_slot}; " \
-			"run setboot; run loadkernel; run loaddtb; booti ${kernel_addr} - ${fdt_addr}; " \
-		"fi; " \
-	"fi; " \
-	"echo netboot; run netboot; " \
-	"echo Failed, enter DFU mode; rauc init; run setdfuboot; dfu 0 && bootm 0x10000000; " \
+	"echo Failed, enter DFU mode; rauc init; run setdfuboot; dfu 0 && bootm ${loadaddr}#${bootconf}; " \
 	"echo PANIC and reset; reset"
 
 #endif /* __CONFIG_ZYNQMP_FTKN_H */

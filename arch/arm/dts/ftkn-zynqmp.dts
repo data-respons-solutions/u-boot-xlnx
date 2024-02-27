@@ -26,6 +26,7 @@
 		serial0 = &uart0;
 		spi0 = &qspi;
 		spi1 = &spi0;
+		usb0 = &usb0;
 	};
 
 	chosen {
@@ -465,6 +466,49 @@
 			bias-disable;
 		};
 	};
+
+	pinctrl_usb0_default: usb0-default {
+		mux {
+			groups = "usb0_0_grp";
+			function = "usb0";
+		};
+
+		conf {
+			groups = "usb0_0_grp";
+			power-source = <IO_STANDARD_LVCMOS18>;
+		};
+
+		conf-rx {
+			pins = "MIO52", "MIO53", "MIO55";
+			bias-high-impedance;
+			drive-strength = <12>;
+			slew-rate = <SLEW_RATE_FAST>;
+		};
+
+		conf-tx {
+			pins = "MIO54", "MIO56", "MIO57", "MIO58", "MIO59",
+			       "MIO60", "MIO61", "MIO62", "MIO63";
+			bias-disable;
+			drive-strength = <4>;
+			slew-rate = <SLEW_RATE_SLOW>;
+		};
+	};
+};
+
+/* ULPI SMSC USB3320 */
+&usb0 {
+	status = "okay";
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_usb0_default>;
+	phy-names = "usb3-phy";
+	phys = <&psgtr 0 PHY_TYPE_USB3 0 0>;
+};
+
+&dwc3_0 {
+	status = "okay";
+	dr_mode = "peripheral";
+	snps,usb3_lpm_capable;
+	maximum-speed = "high-speed";
 };
 
 &qspi {

@@ -15,4 +15,10 @@ config CMD_ZYNQMP
 	  and authentication feature enabled while generating
 	  BOOT.BIN using Xilinx bootgen tool.
 
+config XTKN_FIT_CONF
+	string "FIT image config"
+	default "ftkn-zynqmp"
+	help
+	  Use for FIT image configuation in bootm
+
 endif

@@ -89,7 +89,7 @@
 	"dtb_file=/boot/ftkn-zynqmp.dtb\0" \
 	"loadkernel=ext4load mmc 0:${boot_part} ${kernel_addr} /boot/Image\0" \
 	"loaddtb=ext4load mmc 0:${boot_part} ${fdt_addr} ${dtb_file}\0" \
-	CONFIG_XTKN_FIT_CONF \
+	CONFIG_XTKN_FIT_CONF "\0" \
 	ALT_DFU \
 	"mtdparts=" CONFIG_MTDPARTS_DEFAULT "\0" \
 	"default_bootargs=earlycon clk_ignore_unused root=/dev/mmcblk0p${boot_part} ro rootwait rauc.slot=${rauc_slot}\0" \
@@ -112,9 +112,9 @@
 	"sd_uEnvtxt_existence_test=test -e mmc ${sdbootdev}:${bootenv_part} ${bootenv}\0" \
 	"netboot=" \
 		"setenv bootargs clk_ignore_unused rauc.external; " \
-		"for n in 1 2 3 4; do " \
-			"sleep 30; echo attempt $n on tftp boot; " \
-			"tftpboot ${loadaddr} initrd-installer.itb && bootm ${loadaddr}#${bootconf} " \
+		"while true; do " \
+			"tftpboot ${loadaddr} initrd-installer.itb && bootm ${loadaddr}#${bootconf}; " \
+			"sleep 5; " \
 		"done\0" \
 	"uenvboot=" \
 		"run sd_uEnvtxt_existence_test || setenv bootenv_part 1; " \
@@ -159,6 +159,11 @@
 
 #undef CONFIG_BOOTCOMMAND
 #define CONFIG_BOOTCOMMAND \
+	"echo netboot; run netboot; " \
+	"echo Failed, enter DFU mode; rauc init; run setdfuboot; dfu 0 && bootm ${loadaddr}#${bootconf}; " \
+	"echo PANIC and reset; reset"
+
+#define BOOTCOMMAND_DISK \
 	"if test -e mmc ${sdbootdev}:${bootenv_part} ${divert_flag}; then " \
 		"echo diverting to tftpboot ...; run netboot; " \
 	"else " \

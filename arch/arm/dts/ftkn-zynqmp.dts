@@ -12,7 +12,7 @@
 };
 
 &usb1 {
-	status = "okay";
+	status = "disabled";
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_usb1_default>;
 	phy-names = "usb2-phy";
@@ -20,7 +20,7 @@
 };
 
 &dwc3_1 {
-	status = "okay";
+	status = "disabled";
 	dr_mode = "otg";
     maximum-speed = "high-speed";
 };

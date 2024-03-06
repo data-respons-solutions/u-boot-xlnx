@@ -42,7 +42,7 @@
 */
 
 &usb0 {
-	status = "okay";
+	status = "disabled";
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_usb0_default>;
 	phy-names = "usb2-phy";
@@ -50,7 +50,7 @@
 };
 
 &dwc3_0 {
-	status = "okay";
+	status = "disabled";
 	dr_mode = "peripheral";
 	snps,usb3_lpm_capable;
 	maximum-speed = "high-speed";

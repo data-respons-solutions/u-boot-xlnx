@@ -159,9 +159,7 @@
 
 #undef CONFIG_BOOTCOMMAND
 #define CONFIG_BOOTCOMMAND \
-	"echo netboot; run netboot; " \
-	"echo Failed, enter DFU mode; rauc init; run setdfuboot; dfu 0 && bootm ${loadaddr}#${bootconf}; " \
-	"echo PANIC and reset; reset"
+	"echo netboot; run netboot"
 
 #define BOOTCOMMAND_DISK \
 	"if test -e mmc ${sdbootdev}:${bootenv_part} ${divert_flag}; then " \
